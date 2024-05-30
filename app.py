@@ -20,13 +20,13 @@ def main():
     with st.sidebar:
         st.title("Please upload your files...📁 ")
         # Upload the pdf file...
-        pdf_file= st.file_uploader("Only PDF files allowed", type=["pdf"] ) #, accept_multiple_files=True
+        pdf_file= st.file_uploader("Only PDF files allowed", type=["pdf"], accept_multiple_files=True ) #, accept_multiple_files=True
         if pdf_file is not None:
             with st.spinner('Wait for it...'):
-                    text=read_pdf_data(pdf_file)
+                    text1=read_pdf_data(pdf_file)
                     st.write("👉Reading PDF done")
                     # Create chunks
-                    docs_chunks=split_data(text)
+                    docs_chunks=split_data(text1)
                     #st.write(docs_chunks)
                     st.write("👉Splitting data into chunks done")
                     db1=vector_data(docs_chunks)

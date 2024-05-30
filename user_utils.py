@@ -15,10 +15,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-import os
-#import google.generativeai as genai
-#genai.configure(api_key=os.environ['GOOGLE_API_KEY'])
-#llm =ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3)
+
 llm=HuggingFaceEndpoint(repo_id="meta-llama/Meta-Llama-3-8B-Instruct",max_length=128)
 
 
@@ -27,10 +24,11 @@ llm=HuggingFaceEndpoint(repo_id="meta-llama/Meta-Llama-3-8B-Instruct",max_length
 #Read PDF data
 def read_pdf_data(pdf_file):
     text=""
-    pdf_reader= PdfReader(pdf_file)
-    for page in pdf_reader.pages:
-        text+= page.extract_text()
-    return  text
+    for pdf in pdf_file:
+        pdf_reader= PdfReader(pdf)
+        for page in pdf_reader.pages:
+            text+= page.extract_text()
+    return text
 
 def read_pdf_data1(pdf_file):
     loader=PyPDFDirectoryLoader(pdf_file) ## Data Ingestion
@@ -53,6 +51,7 @@ def split_data(text):
 #Create embeddings instance
 
 #Function to push data to FAISS
+
 def vector_data(docs):
 
     db=FAISS.from_documents(docs,embedding=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")) 
