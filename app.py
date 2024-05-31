@@ -16,26 +16,11 @@ def main():
     #Capture user input
     st.write("We are here to help you, please ask your question:")
     user_input = st.text_input("🔍")
-
-    with st.sidebar:
-        st.title("Please upload your files...📁 ")
-        # Upload the pdf file...
-        pdf_file= st.file_uploader("Only PDF files allowed", type=["pdf"], accept_multiple_files=True ) #, accept_multiple_files=True
-        if pdf_file is not None:
-            with st.spinner('Wait for it...'):
-                    text1=read_pdf_data(pdf_file)
-                    st.write("👉Reading PDF done")
-                    # Create chunks
-                    docs_chunks=split_data(text1)
-                    #st.write(docs_chunks)
-                    st.write("👉Splitting data into chunks done")
-                    db1=vector_data(docs_chunks)
-            st.success("Successfully pushed the embeddings to FIASS") 
     
     if user_input:
-        #creating embeddings instance...       
-        embeddings=create_embeddings1()
-        index=db1
+        #creating embeddings instance...    
+        embeddings=get_embeddings()
+        index=get_DB(embeddings)   
         response=get_answer(index,user_input)
         st.write(response['result'])       
         #Button to create a ticket with respective department
@@ -43,7 +28,7 @@ def main():
 
         if button:
             #Get Response
-            embeddings = create_embeddings1()
+            embeddings = get_embeddings()
             query_result = embeddings.embed_query(user_input)
             #loading the ML model, so that we can use it to predit the class to which this compliant belongs to...
             department_value = predict(query_result)

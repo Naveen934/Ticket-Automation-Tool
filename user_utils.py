@@ -1,17 +1,19 @@
+from pypdf import PdfReader
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.llms.huggingface_endpoint import HuggingFaceEndpoint
 from langchain.chains.question_answering import load_qa_chain
 from langchain_community.callbacks import get_openai_callback
-import joblib
-from pypdf import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
-import pandas as pd
+from langchain.chains import RetrievalQA
 from sklearn.model_selection import train_test_split
+import joblib
+import pandas as pd
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -50,35 +52,27 @@ def split_data(text):
 
 #Create embeddings instance
 
-#Function to push data to FAISS
-
-def vector_data(docs):
-
-    db=FAISS.from_documents(docs,embedding=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")) 
-    return db
-
-def create_embeddings1():
+def get_embeddings():
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     return embeddings
 
+#Function to push data to FAISS
 
-#This function will help us in fetching the top relevent documents from our vector store - Pinecone Index
-def get_similar_docs(db,query,k=2):
+def create_vectorDB(docs):
 
-    similar_docs = db.similarity_search(query, k=k)
-    return similar_docs
+    db=FAISS.from_documents(docs,embedding=HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")) 
+    db.save_local("faiss_index")
 
-"""def get_answer(docs,user_input):
-    chain = load_qa_chain(HuggingFaceEndpoint(repo_id="mistralai/Mistral-7B-Instruct-v0.2",max_length=128), chain_type="stuff")   
-    response = chain.run(input_documents=docs, question=user_input)
-    return response"""
+def get_DB(embeddings):
+    new_db = FAISS.load_local("faiss_index", embeddings,allow_dangerous_deserialization=True)
+   
+    return new_db
 
-from langchain.chains import RetrievalQA
+
 def get_answer(db,user_input):
     qa_chain = RetrievalQA.from_chain_type(
             llm,
-            retriever=db.as_retriever()
-        )
+            retriever=db.as_retriever() )
     
     result = qa_chain({"query":user_input })
     return result
@@ -94,11 +88,6 @@ def predict(query_result):
 def read_data(data):
     df = pd.read_csv(data,delimiter=',', header=None)  
     return df
-
-#Create embeddings instance
-def get_embeddings():
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    return embeddings
 
 #Generating embeddings for our input dataset
 def create_embeddings(df,embeddings):
